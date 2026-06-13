@@ -48,7 +48,7 @@ const researchGraph = buildResearchGraph(publications, research);
       <p class="mb-4 text-sm text-muted">
         Interactive graph of publications, projects and topics — hover to explore connections, click nodes with links to open papers.
       </p>
-      <ResearchGraph client:visible data={researchGraph} height={440} />
+      <ResearchGraph client:idle data={researchGraph} height={440} />
     </div>
 
     <div class="mt-16">

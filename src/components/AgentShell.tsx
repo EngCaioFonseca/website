@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
-import { SITE } from '../consts';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { SITE, ACCENT_IDS, type AccentId } from '../consts';
 import { withBase } from '../utils/url';
 import {
   searchSiteIndex,
   typeLabel,
   type SiteIndexEntry,
 } from '../utils/siteIndex';
+import { semanticSearch } from '../utils/semanticSearch';
 
 type Line = { kind: 'in' | 'out' | 'sys' | 'err'; text: string };
 
@@ -18,7 +19,8 @@ const BOOT: Line[] = [
   { kind: 'in', text: 'background --short' },
   { kind: 'out', text: 'phd · computational science & applied maths' },
   { kind: 'out', text: 'ex: UCLA · RIT · IINELS Brain Institute' },
-  { kind: 'sys', text: "ready — type 'help' or ask about projects & papers" },
+  { kind: 'out', text: 'ai · in-browser semantic search · loads on first ask' },
+  { kind: 'sys', text: 'ready — try: ask glioblastoma' },
 ];
 
 const HELP = `commands:
@@ -28,7 +30,8 @@ const HELP = `commands:
   papers            list publications
   go <n>            open search result #n
   contact           show email
-  theme             toggle colour theme
+  theme [dark|light] switch light / dark
+  accent [name]     accent theme (emerald · matrix · amber · cyan · violet)
   clear             reset output
   palette           open command menu (⌘K)`;
 
@@ -56,6 +59,8 @@ export default function AgentShell({ siteIndex }: Props) {
   const [lastResults, setLastResults] = useState<SiteIndexEntry[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const modelReady = useRef(false);
+  const semanticFailed = useRef(false);
 
   const append = useCallback((...next: Line[]) => {
     setLines((prev) => [...prev, ...next]);
@@ -109,26 +114,58 @@ export default function AgentShell({ siteIndex }: Props) {
     };
   }, [reduced]);
 
-  const runSearch = (query: string) => {
-    if (!query.trim()) {
+  const printResults = (results: SiteIndexEntry[], emptyHint: string) => {
+    setLastResults(results);
+    if (results.length === 0) {
+      append({ kind: 'out', text: emptyHint });
+      return;
+    }
+    append({ kind: 'out', text: `→ ${results.length} result${results.length === 1 ? '' : 's'}` });
+    results.forEach((r, n) =>
+      append({
+        kind: 'out',
+        text: `  ${n + 1}. [${typeLabel(r.type)}] ${r.title} — ${r.excerpt.slice(0, 72)}${
+          r.excerpt.length > 72 ? '…' : ''
+        }`,
+      }),
+    );
+    append({ kind: 'sys', text: 'run: go <n> to open a result' });
+  };
+
+  const runSearch = async (query: string) => {
+    const q = query.trim();
+    if (!q) {
       append({ kind: 'err', text: 'usage: ask <query>' });
       return;
     }
-    append({ kind: 'sys', text: `indexing local knowledge base… "${query}"` });
-    const results = searchSiteIndex(siteIndex, query, 5);
-    setLastResults(results);
-    if (results.length === 0) {
-      append({ kind: 'out', text: 'no matches — try papers, glioblastoma, 8knot, red hat' });
-      return;
+
+    // Semantic path: local sentence-embedding model in the browser.
+    if (!semanticFailed.current) {
+      if (!modelReady.current) {
+        append({ kind: 'sys', text: 'booting local model · minilm embeddings · no cloud…' });
+      }
+      try {
+        const ranked = await semanticSearch(siteIndex, q, 5);
+        modelReady.current = true;
+        const strong = ranked.filter((r) => r.score > 0.18).map((r) => r.entry);
+        const results = strong.length ? strong : ranked.slice(0, 3).map((r) => r.entry);
+        append({
+          kind: 'sys',
+          text: `semantic match · top score ${(ranked[0]?.score ?? 0).toFixed(2)}`,
+        });
+        printResults(results, 'no strong matches — try: glioblastoma, 8knot, eeg, red hat');
+        return;
+      } catch {
+        semanticFailed.current = true;
+        append({ kind: 'err', text: 'local model unavailable — using keyword search' });
+      }
     }
-    append({ kind: 'out', text: `→ ${results.length} match${results.length === 1 ? '' : 'es'}` });
-    results.forEach((r, n) => {
-      append({
-        kind: 'out',
-        text: `  ${n + 1}. [${typeLabel(r.type)}] ${r.title} — ${r.excerpt.slice(0, 72)}${r.excerpt.length > 72 ? '…' : ''}`,
-      });
-    });
-    append({ kind: 'sys', text: 'run: go <n> to open a result' });
+
+    // Keyword fallback.
+    printResults(
+      searchSiteIndex(siteIndex, q, 5),
+      'no matches — try papers, glioblastoma, 8knot, red hat',
+    );
   };
 
   const openResult = (n: number) => {
@@ -200,9 +237,32 @@ export default function AgentShell({ siteIndex }: Props) {
         append({ kind: 'out', text: SITE.email });
         break;
       case 'theme': {
-        const dark = document.documentElement.classList.toggle('dark');
-        localStorage.setItem('theme', dark ? 'dark' : 'light');
-        append({ kind: 'sys', text: `theme → ${dark ? 'dark' : 'light'}` });
+        const a = arg.toLowerCase().trim();
+        if (a === 'dark' || a === 'light') {
+          document.documentElement.classList.toggle('dark', a === 'dark');
+          localStorage.setItem('theme', a);
+          append({ kind: 'sys', text: `mode → ${a}` });
+        } else if (ACCENT_IDS.includes(a as AccentId)) {
+          window.dispatchEvent(new CustomEvent('accent:set', { detail: a }));
+          append({ kind: 'sys', text: `accent → ${a}` });
+        } else {
+          const dark = document.documentElement.classList.toggle('dark');
+          localStorage.setItem('theme', dark ? 'dark' : 'light');
+          append({ kind: 'sys', text: `mode → ${dark ? 'dark' : 'light'}` });
+        }
+        break;
+      }
+      case 'accent': {
+        const a = arg.toLowerCase().trim();
+        if (!a) {
+          window.dispatchEvent(new Event('accent:cycle'));
+          append({ kind: 'sys', text: 'accent → next' });
+        } else if (ACCENT_IDS.includes(a as AccentId)) {
+          window.dispatchEvent(new CustomEvent('accent:set', { detail: a }));
+          append({ kind: 'sys', text: `accent → ${a}` });
+        } else {
+          append({ kind: 'err', text: `accent: try ${ACCENT_IDS.join(', ')}` });
+        }
         break;
       }
       case 'clear':
@@ -223,13 +283,6 @@ export default function AgentShell({ siteIndex }: Props) {
         if (line.includes(' ')) runSearch(line);
         else append({ kind: 'err', text: `unknown: ${cmd} — type 'help'` });
     }
-  };
-
-  const onSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!ready || !input.trim()) return;
-    handleCommand(input);
-    setInput('');
   };
 
   return (
@@ -281,7 +334,12 @@ export default function AgentShell({ siteIndex }: Props) {
       </div>
 
       <form
-        onSubmit={onSubmit}
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!ready || !input.trim()) return;
+          handleCommand(input);
+          setInput('');
+        }}
         className="flex items-center gap-2 border-t px-4 py-2.5"
         style={{ borderColor: 'var(--term-border)' }}
       >

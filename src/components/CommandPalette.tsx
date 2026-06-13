@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { NAV, SOCIAL, SITE } from '../consts';
+import { NAV, SOCIAL, SITE, ACCENTS } from '../consts';
 import { searchSiteIndex, typeLabel, type SiteIndexEntry } from '../utils/siteIndex';
 import { withBase } from '../utils/url';
 
@@ -84,6 +84,15 @@ export default function CommandPalette({ siteIndex = [] }: Props) {
         group: 'actions',
         run: () => navigator.clipboard?.writeText(SITE.email),
       },
+      ...ACCENTS.map((a) => ({
+        id: `accent-${a.id}`,
+        label: `Accent: ${a.label}`,
+        hint: 'theme',
+        icon: 'ti ti-palette',
+        keywords: `accent theme colour color ${a.id}`,
+        group: 'actions' as const,
+        run: () => window.dispatchEvent(new CustomEvent('accent:set', { detail: a.id })),
+      })),
     ];
     return [...nav, ...social, ...tools];
   }, []);

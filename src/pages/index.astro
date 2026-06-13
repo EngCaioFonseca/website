@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import AgentShell from '../components/AgentShell.tsx';
-import AmbientCanvas from '../components/AmbientCanvas.tsx';
+import BioNetCanvas from '../components/BioNetCanvas.tsx';
 import LiveStatusStrip from '../components/LiveStatusStrip.tsx';
 import GithubActivity from '../components/GithubActivity.tsx';
 import ContributionGraph from '../components/ContributionGraph.astro';
@@ -46,7 +46,7 @@ const fmtDate = (d: Date) =>
 
 <Base>
   <section class="hero-cockpit">
-    <AmbientCanvas client:idle />
+    <BioNetCanvas client:idle />
     <div class="hero-grid" aria-hidden="true"></div>
     <div class="hero-glow" aria-hidden="true"></div>
     <div class="hero-scanline" aria-hidden="true"></div>
@@ -58,7 +58,7 @@ const fmtDate = (d: Date) =>
             <span class="status-live" aria-hidden="true"></span>
             agent shell · local index
           </div>
-          <p class="mono mb-3 text-sm text-accent">// {SITE.role}</p>
+          <p class="mono mb-3 text-sm text-accent" data-decrypt>// {SITE.role}</p>
           <h1 class="text-4xl font-medium leading-[1.06] tracking-tight sm:text-[2.75rem]">
             Hi, I’m Caio.
           </h1>
@@ -66,6 +66,7 @@ const fmtDate = (d: Date) =>
           <div class="mt-7 flex flex-wrap gap-3">
             <a
               href={withBase('/projects')}
+              data-magnetic
               class="rounded-lg bg-accent-strong px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
             >
               View work →
@@ -73,12 +74,14 @@ const fmtDate = (d: Date) =>
             <button
               type="button"
               data-cmdk
+              data-magnetic
               class="rounded-lg border border-border-strong px-4 py-2 text-sm transition-colors hover:border-accent"
             >
               ⌘K palette
             </button>
             <a
               href={withBase('/contact')}
+              data-magnetic
               class="rounded-lg border border-border px-4 py-2 text-sm text-muted transition-colors hover:border-border-strong hover:text-text"
             >
               Contact

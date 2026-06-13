@@ -5,6 +5,7 @@ import {
   type GraphNode,
   type ResearchGraphData,
 } from '../utils/researchGraph';
+import { withBase } from '../utils/url';
 
 type SimNode = GraphNode & {
   x: number;
@@ -28,7 +29,21 @@ export default function ResearchGraph({ data, height = 420, compact = false }: P
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<GraphNode | null>(null);
-  const activeRef = useRef<string | null>(null);
+  const [activeTopic, setActiveTopic] = useState<string | null>(null);
+  const hoverRef = useRef<string | null>(null);
+  const focusRef = useRef<string | null>(null);
+  const drawRef = useRef<() => void>(() => {});
+
+  const topics = data.nodes.filter((n) => n.type === 'topic');
+  const papers = data.nodes.filter((n) => n.type === 'paper');
+  const projects = data.nodes.filter((n) => n.type === 'project');
+
+  // Keep the sticky focus (topic filter or selected node) in sync; redraw so
+  // the change is reflected even when the animation loop is paused.
+  useEffect(() => {
+    focusRef.current = activeTopic ?? (selected ? selected.id : null);
+    drawRef.current();
+  }, [activeTopic, selected]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -39,8 +54,6 @@ export default function ResearchGraph({ data, height = 420, compact = false }: P
     if (!ctx) return;
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let raf = 0;
-    let running = true;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     const resize = () => {
@@ -65,9 +78,7 @@ export default function ResearchGraph({ data, height = 420, compact = false }: P
     });
 
     const nodeMap = new Map(nodes.map((n) => [n.id, n]));
-    const links = data.links.filter(
-      (l) => nodeMap.has(l.source) && nodeMap.has(l.target),
-    );
+    const links = data.links.filter((l) => nodeMap.has(l.source) && nodeMap.has(l.target));
 
     resize();
 
@@ -129,7 +140,7 @@ export default function ResearchGraph({ data, height = 420, compact = false }: P
 
       ctx.clearRect(0, 0, w, height);
 
-      const active = activeRef.current;
+      const active = hoverRef.current ?? focusRef.current;
       const connected = new Set<string>();
       if (active) {
         connected.add(active);
@@ -148,7 +159,7 @@ export default function ResearchGraph({ data, height = 420, compact = false }: P
         ctx.moveTo(a.x, a.y);
         ctx.lineTo(b.x, b.y);
         ctx.strokeStyle = lit ? accent : faint;
-        ctx.globalAlpha = lit ? 0.35 : 0.15;
+        ctx.globalAlpha = lit ? 0.35 : 0.1;
         ctx.lineWidth = lit ? 1.2 : 0.6;
         ctx.stroke();
       }
@@ -160,10 +171,11 @@ export default function ResearchGraph({ data, height = 420, compact = false }: P
         ctx.beginPath();
         ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
         ctx.fillStyle = lit ? nodeColor(n.type, accent) : surface2;
-        ctx.globalAlpha = lit ? 1 : 0.45;
+        ctx.globalAlpha = lit ? 1 : 0.4;
         ctx.fill();
         ctx.globalAlpha = 1;
-        if (n.id === active) {
+        const labelled = n.id === active || n.id === focusRef.current;
+        if (labelled) {
           ctx.strokeStyle = accent;
           ctx.lineWidth = 2;
           ctx.stroke();
@@ -174,11 +186,28 @@ export default function ResearchGraph({ data, height = 420, compact = false }: P
       }
     };
 
+    drawRef.current = draw;
+
+    let raf = 0;
+    let running = true;
+    let visible = true;
+
     const loop = () => {
       if (!running) return;
-      if (!reduced) tick();
+      tick();
       draw();
       raf = requestAnimationFrame(loop);
+    };
+
+    const start = () => {
+      if (reduced || raf) return;
+      raf = requestAnimationFrame(loop);
+    };
+    const stop = () => {
+      if (raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
     };
 
     const hitTest = (mx: number, my: number): string | null => {
@@ -191,73 +220,202 @@ export default function ResearchGraph({ data, height = 420, compact = false }: P
 
     const onMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
-      activeRef.current = hitTest(e.clientX - rect.left, e.clientY - rect.top);
-      canvas.style.cursor = activeRef.current ? 'pointer' : 'default';
+      hoverRef.current = hitTest(e.clientX - rect.left, e.clientY - rect.top);
+      canvas.style.cursor = hoverRef.current ? 'pointer' : 'default';
+      if (reduced) draw();
     };
 
-    const onClick = () => {
-      const id = activeRef.current;
-      if (!id) {
-        setSelected(null);
-        return;
-      }
-      const n = nodes.find((x) => x.id === id);
-      if (!n) return;
-      setSelected(n);
-      if (n.href) window.open(n.href, '_blank', 'noopener');
+    const onClick = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const id = hitTest(e.clientX - rect.left, e.clientY - rect.top);
+      setSelected(id ? nodes.find((n) => n.id === id) ?? null : null);
     };
 
-    const ro = new ResizeObserver(resize);
+    const onLeave = () => {
+      hoverRef.current = null;
+      if (reduced) draw();
+    };
+
+    const ro = new ResizeObserver(() => {
+      resize();
+      draw();
+    });
     ro.observe(wrap);
     canvas.addEventListener('mousemove', onMove);
-    canvas.addEventListener('mouseleave', () => {
-      activeRef.current = null;
-    });
+    canvas.addEventListener('mouseleave', onLeave);
     canvas.addEventListener('click', onClick);
-    loop();
+
+    const io = new IntersectionObserver(
+      (ents) => {
+        visible = ents[0].isIntersecting;
+        if (visible) start();
+        else stop();
+      },
+      { threshold: 0 },
+    );
+    io.observe(wrap);
+
+    const onVis = () => {
+      if (document.hidden) stop();
+      else if (visible) start();
+    };
+    document.addEventListener('visibilitychange', onVis);
+
+    // Always settle + paint an initial frame so the graph is present even before
+    // the loop spins up (and regardless of IntersectionObserver timing).
+    for (let i = 0; i < (reduced ? 220 : 90); i += 1) tick();
+    draw();
+    if (!reduced) start();
 
     return () => {
       running = false;
-      cancelAnimationFrame(raf);
+      stop();
       ro.disconnect();
+      io.disconnect();
+      document.removeEventListener('visibilitychange', onVis);
       canvas.removeEventListener('mousemove', onMove);
+      canvas.removeEventListener('mouseleave', onLeave);
       canvas.removeEventListener('click', onClick);
     };
   }, [data, height, compact]);
 
   if (data.nodes.length === 0) return null;
 
+  const chip = (on: boolean) =>
+    `mono rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+      on ? 'border-accent text-accent' : 'border-border text-muted hover:border-border-strong'
+    }`;
+
   return (
-    <div ref={wrapRef} className="research-graph-wrap cockpit-panel overflow-hidden rounded-xl">
-      <div
-        className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2.5"
-        style={{ borderColor: 'var(--border)' }}
-      >
-        <span className="mono text-[11px] text-faint">research map · force layout</span>
-        <div className="flex flex-wrap gap-3">
-          <span className="mono flex items-center gap-1.5 text-[10px] text-faint">
-            <span className="inline-block h-2 w-2 rounded-full bg-accent" /> paper
-          </span>
-          <span className="mono flex items-center gap-1.5 text-[10px] text-faint">
-            <span className="inline-block h-2 w-2 rounded-full bg-indigo-500" /> project
-          </span>
-          <span className="mono flex items-center gap-1.5 text-[10px] text-faint">
-            <span className="inline-block h-2 w-2 rounded-full bg-faint" /> topic
-          </span>
+    <div>
+      {topics.length > 0 && (
+        <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label="Filter research map by topic">
+          <button type="button" onClick={() => setActiveTopic(null)} className={chip(activeTopic === null)}>
+            all
+          </button>
+          {topics.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              aria-pressed={activeTopic === t.id}
+              onClick={() => setActiveTopic((cur) => (cur === t.id ? null : t.id))}
+              className={chip(activeTopic === t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
-      </div>
-      <canvas
-        ref={canvasRef}
-        role="img"
-        aria-label="Interactive research knowledge graph linking publications, projects and topics"
-        className="block w-full"
-      />
-      {selected && (
-        <p className="border-t px-4 py-2 text-sm text-muted" style={{ borderColor: 'var(--border)' }}>
-          <span className="font-medium text-text">{selected.label}</span>
-          {selected.href && <span className="mono ml-2 text-[11px] text-accent">↗ open</span>}
-        </p>
       )}
+
+      <div ref={wrapRef} className="research-graph-wrap cockpit-panel overflow-hidden rounded-xl">
+        <div
+          className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2.5"
+          style={{ borderColor: 'var(--border)' }}
+        >
+          <span className="mono text-[11px] text-faint">research map · force layout</span>
+          <div className="flex flex-wrap gap-3">
+            <span className="mono flex items-center gap-1.5 text-[10px] text-faint">
+              <span className="inline-block h-2 w-2 rounded-full bg-accent" /> paper
+            </span>
+            <span className="mono flex items-center gap-1.5 text-[10px] text-faint">
+              <span className="inline-block h-2 w-2 rounded-full" style={{ background: '#6366f1' }} /> project
+            </span>
+            <span className="mono flex items-center gap-1.5 text-[10px] text-faint">
+              <span className="inline-block h-2 w-2 rounded-full bg-faint" /> topic
+            </span>
+          </div>
+        </div>
+        <canvas
+          ref={canvasRef}
+          role="img"
+          aria-label="Interactive research knowledge graph linking publications, projects and topics. A keyboard-accessible list of the same items follows below."
+          className="block w-full"
+        />
+        {selected && (
+          <div
+            className="flex items-center justify-between gap-3 border-t px-4 py-2.5"
+            style={{ borderColor: 'var(--border)' }}
+          >
+            <span className="text-sm">
+              <span className="mono mr-2 text-[11px] text-faint">{selected.type}</span>
+              <span className="font-medium text-text">{selected.label}</span>
+            </span>
+            {selected.href && (
+              <a
+                href={selected.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mono shrink-0 text-[12px] text-accent link-underline"
+              >
+                open ↗
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+
+      <details className="mt-3 rounded-xl border border-border bg-surface px-4 py-2 text-sm">
+        <summary className="mono cursor-pointer py-1 text-[12px] text-muted">
+          List view ({papers.length} papers · {projects.length} projects · {topics.length} topics)
+        </summary>
+        <div className="space-y-4 py-3">
+          {papers.length > 0 && (
+            <div>
+              <p className="mono mb-1 text-[11px] text-faint">Publications</p>
+              <ul className="space-y-1">
+                {papers.map((n) => (
+                  <li key={n.id}>
+                    <a
+                      href={n.href ?? withBase('/academic')}
+                      target={n.href ? '_blank' : undefined}
+                      rel="noopener noreferrer"
+                      className="text-muted transition-colors hover:text-accent"
+                    >
+                      {n.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {projects.length > 0 && (
+            <div>
+              <p className="mono mb-1 text-[11px] text-faint">Projects</p>
+              <ul className="space-y-1">
+                {projects.map((n) => (
+                  <li key={n.id}>
+                    <a
+                      href={n.href ?? withBase('/projects')}
+                      target={n.href ? '_blank' : undefined}
+                      rel="noopener noreferrer"
+                      className="text-muted transition-colors hover:text-accent"
+                    >
+                      {n.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {topics.length > 0 && (
+            <div>
+              <p className="mono mb-1 text-[11px] text-faint">Topics</p>
+              <div className="flex flex-wrap gap-2">
+                {topics.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setActiveTopic((cur) => (cur === t.id ? null : t.id))}
+                    className={chip(activeTopic === t.id)}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </details>
     </div>
   );
 }

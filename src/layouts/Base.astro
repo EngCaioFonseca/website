@@ -5,6 +5,7 @@ import BaseHead from '../components/BaseHead.astro';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import Analytics from '../components/Analytics.astro';
+import MotionFX from '../components/MotionFX.astro';
 import CommandPalette from '../components/CommandPalette.tsx';
 import { buildSiteIndex } from '../utils/siteIndex';
 
@@ -32,12 +33,29 @@ const siteIndex = buildSiteIndex(projects, publications, posts);
     <ClientRouter />
     <script is:inline>
       (function () {
+        var ACCENTS = ['emerald', 'matrix', 'amber', 'cyan', 'violet', 'red'];
         function applyTheme() {
           var t = localStorage.getItem('theme');
           var d = t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
           document.documentElement.classList.toggle('dark', d);
         }
+        function applyAccent() {
+          var a = localStorage.getItem('accent') || 'emerald';
+          if (ACCENTS.indexOf(a) === -1) a = 'emerald';
+          document.documentElement.dataset.accent = a;
+        }
+        function toggleRedTeam() {
+          var cur = localStorage.getItem('accent') || 'emerald';
+          if (cur === 'red') {
+            localStorage.setItem('accent', localStorage.getItem('accentPrev') || 'emerald');
+          } else {
+            localStorage.setItem('accentPrev', cur);
+            localStorage.setItem('accent', 'red');
+          }
+          applyAccent();
+        }
         applyTheme();
+        applyAccent();
         if (!window.__ui) {
           window.__ui = true;
           document.addEventListener('click', function (e) {
@@ -46,13 +64,28 @@ const siteIndex = buildSiteIndex(projects, publications, posts);
               localStorage.setItem('theme', d ? 'dark' : 'light');
             } else if (e.target.closest('[data-cmdk]')) {
               window.dispatchEvent(new Event('cmdk:open'));
+            } else if (e.target.closest('#redteam-toggle')) {
+              toggleRedTeam();
             } else if (e.target.closest('#menu-toggle')) {
               var m = document.getElementById('mobile-menu');
               if (m) m.classList.toggle('hidden');
             }
           });
+          window.addEventListener('accent:set', function (e) {
+            if (e.detail && ACCENTS.indexOf(e.detail) !== -1) {
+              localStorage.setItem('accent', e.detail);
+              applyAccent();
+            }
+          });
+          window.addEventListener('accent:cycle', function () {
+            var cur = localStorage.getItem('accent') || 'emerald';
+            var i = (ACCENTS.indexOf(cur) + 1) % ACCENTS.length;
+            localStorage.setItem('accent', ACCENTS[i < 0 ? 0 : i]);
+            applyAccent();
+          });
           document.addEventListener('astro:after-swap', function () {
             applyTheme();
+            applyAccent();
             var m = document.getElementById('mobile-menu');
             if (m) m.classList.add('hidden');
           });
@@ -69,5 +102,6 @@ const siteIndex = buildSiteIndex(projects, publications, posts);
     <Footer />
     <CommandPalette client:idle siteIndex={siteIndex} />
     <Analytics />
+    <MotionFX />
   </body>
 </html>
