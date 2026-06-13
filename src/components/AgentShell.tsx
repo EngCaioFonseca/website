@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
-import { SITE } from '../consts';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { SITE, ACCENT_IDS, type AccentId } from '../consts';
 import { withBase } from '../utils/url';
 import {
   searchSiteIndex,
@@ -28,7 +28,8 @@ const HELP = `commands:
   papers            list publications
   go <n>            open search result #n
   contact           show email
-  theme             toggle colour theme
+  theme [dark|light] switch light / dark
+  accent [name]     accent theme (emerald · matrix · amber · cyan · violet)
   clear             reset output
   palette           open command menu (⌘K)`;
 
@@ -200,9 +201,32 @@ export default function AgentShell({ siteIndex }: Props) {
         append({ kind: 'out', text: SITE.email });
         break;
       case 'theme': {
-        const dark = document.documentElement.classList.toggle('dark');
-        localStorage.setItem('theme', dark ? 'dark' : 'light');
-        append({ kind: 'sys', text: `theme → ${dark ? 'dark' : 'light'}` });
+        const a = arg.toLowerCase().trim();
+        if (a === 'dark' || a === 'light') {
+          document.documentElement.classList.toggle('dark', a === 'dark');
+          localStorage.setItem('theme', a);
+          append({ kind: 'sys', text: `mode → ${a}` });
+        } else if (ACCENT_IDS.includes(a as AccentId)) {
+          window.dispatchEvent(new CustomEvent('accent:set', { detail: a }));
+          append({ kind: 'sys', text: `accent → ${a}` });
+        } else {
+          const dark = document.documentElement.classList.toggle('dark');
+          localStorage.setItem('theme', dark ? 'dark' : 'light');
+          append({ kind: 'sys', text: `mode → ${dark ? 'dark' : 'light'}` });
+        }
+        break;
+      }
+      case 'accent': {
+        const a = arg.toLowerCase().trim();
+        if (!a) {
+          window.dispatchEvent(new Event('accent:cycle'));
+          append({ kind: 'sys', text: 'accent → next' });
+        } else if (ACCENT_IDS.includes(a as AccentId)) {
+          window.dispatchEvent(new CustomEvent('accent:set', { detail: a }));
+          append({ kind: 'sys', text: `accent → ${a}` });
+        } else {
+          append({ kind: 'err', text: `accent: try ${ACCENT_IDS.join(', ')}` });
+        }
         break;
       }
       case 'clear':
@@ -223,13 +247,6 @@ export default function AgentShell({ siteIndex }: Props) {
         if (line.includes(' ')) runSearch(line);
         else append({ kind: 'err', text: `unknown: ${cmd} — type 'help'` });
     }
-  };
-
-  const onSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!ready || !input.trim()) return;
-    handleCommand(input);
-    setInput('');
   };
 
   return (
@@ -281,7 +298,12 @@ export default function AgentShell({ siteIndex }: Props) {
       </div>
 
       <form
-        onSubmit={onSubmit}
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!ready || !input.trim()) return;
+          handleCommand(input);
+          setInput('');
+        }}
         className="flex items-center gap-2 border-t px-4 py-2.5"
         style={{ borderColor: 'var(--term-border)' }}
       >

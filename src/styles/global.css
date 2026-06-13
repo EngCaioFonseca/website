@@ -36,6 +36,20 @@
   --accent-strong: #5dcaa5;
 }
 
+/* ── Accent themes (orthogonal to dark/light) ──
+   Default = emerald (the base tokens above). data-accent on <html> swaps these. */
+:root[data-accent="matrix"] { --accent: #1a8f2e; --accent-strong: #136e22; --term-prompt: #36d957; }
+.dark[data-accent="matrix"] { --accent: #36d957; --accent-strong: #7cf08f; --term-prompt: #5cf07a; }
+
+:root[data-accent="amber"] { --accent: #b8730a; --accent-strong: #8f5a08; --term-prompt: #f0a83a; }
+.dark[data-accent="amber"] { --accent: #f0a83a; --accent-strong: #f6c66b; --term-prompt: #f6c66b; }
+
+:root[data-accent="cyan"] { --accent: #0e8aa8; --accent-strong: #0a6f88; --term-prompt: #38bdd6; }
+.dark[data-accent="cyan"] { --accent: #38bdd6; --accent-strong: #6fd6e6; --term-prompt: #6fd6e6; }
+
+:root[data-accent="violet"] { --accent: #6d4ad1; --accent-strong: #553aa8; --term-prompt: #9a86f0; }
+.dark[data-accent="violet"] { --accent: #9a86f0; --accent-strong: #b9abf6; --term-prompt: #b9abf6; }
+
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
@@ -261,6 +275,14 @@ a { color: inherit; text-decoration: none; }
 .dark .hero-ambient {
   opacity: 0.22;
 }
+
+.hero-bionet {
+  opacity: 0.6;
+  -webkit-mask-image: radial-gradient(ellipse 78% 78% at 62% 42%, black 32%, transparent 82%);
+  mask-image: radial-gradient(ellipse 78% 78% at 62% 42%, black 32%, transparent 82%);
+}
+
+.dark .hero-bionet { opacity: 0.8; }
 
 .research-graph-wrap {
   background: color-mix(in srgb, var(--surface) 92%, transparent);

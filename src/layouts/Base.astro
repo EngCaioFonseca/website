@@ -32,12 +32,19 @@ const siteIndex = buildSiteIndex(projects, publications, posts);
     <ClientRouter />
     <script is:inline>
       (function () {
+        var ACCENTS = ['emerald', 'matrix', 'amber', 'cyan', 'violet'];
         function applyTheme() {
           var t = localStorage.getItem('theme');
           var d = t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
           document.documentElement.classList.toggle('dark', d);
         }
+        function applyAccent() {
+          var a = localStorage.getItem('accent') || 'emerald';
+          if (ACCENTS.indexOf(a) === -1) a = 'emerald';
+          document.documentElement.dataset.accent = a;
+        }
         applyTheme();
+        applyAccent();
         if (!window.__ui) {
           window.__ui = true;
           document.addEventListener('click', function (e) {
@@ -51,8 +58,21 @@ const siteIndex = buildSiteIndex(projects, publications, posts);
               if (m) m.classList.toggle('hidden');
             }
           });
+          window.addEventListener('accent:set', function (e) {
+            if (e.detail && ACCENTS.indexOf(e.detail) !== -1) {
+              localStorage.setItem('accent', e.detail);
+              applyAccent();
+            }
+          });
+          window.addEventListener('accent:cycle', function () {
+            var cur = localStorage.getItem('accent') || 'emerald';
+            var i = (ACCENTS.indexOf(cur) + 1) % ACCENTS.length;
+            localStorage.setItem('accent', ACCENTS[i < 0 ? 0 : i]);
+            applyAccent();
+          });
           document.addEventListener('astro:after-swap', function () {
             applyTheme();
+            applyAccent();
             var m = document.getElementById('mobile-menu');
             if (m) m.classList.add('hidden');
           });

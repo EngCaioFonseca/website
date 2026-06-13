@@ -38,6 +38,19 @@ export const NAV = [
   { href: '/contact', label: 'contact' },
 ] as const;
 
+// Switchable accent themes (orthogonal to dark/light). The id maps to
+// `data-accent` on <html>; CSS overrides live in global.css. 'emerald' is the base.
+export const ACCENTS = [
+  { id: 'emerald', label: 'Emerald' },
+  { id: 'matrix', label: 'Matrix' },
+  { id: 'amber', label: 'Amber CRT' },
+  { id: 'cyan', label: 'Cyan' },
+  { id: 'violet', label: 'Violet' },
+] as const;
+
+export type AccentId = (typeof ACCENTS)[number]['id'];
+export const ACCENT_IDS = ACCENTS.map((a) => a.id) as AccentId[];
+
 // Third-party services for the "live" features. Fill these in to switch them on;
 // each gracefully no-ops while empty so the site always builds.
 export const SERVICES = {

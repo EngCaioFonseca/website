@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import AgentShell from '../components/AgentShell.tsx';
-import AmbientCanvas from '../components/AmbientCanvas.tsx';
+import BioNetCanvas from '../components/BioNetCanvas.tsx';
 import LiveStatusStrip from '../components/LiveStatusStrip.tsx';
 import GithubActivity from '../components/GithubActivity.tsx';
 import ContributionGraph from '../components/ContributionGraph.astro';
@@ -46,7 +46,7 @@ const fmtDate = (d: Date) =>
 
 <Base>
   <section class="hero-cockpit">
-    <AmbientCanvas client:idle />
+    <BioNetCanvas client:idle />
     <div class="hero-grid" aria-hidden="true"></div>
     <div class="hero-glow" aria-hidden="true"></div>
     <div class="hero-scanline" aria-hidden="true"></div>
