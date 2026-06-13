@@ -3,14 +3,18 @@ import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import PublicationList, { type Pub } from '../components/PublicationList.tsx';
+import ResearchGraph from '../components/ResearchGraph.tsx';
 import { SITE } from '../consts';
 import { EDUCATION, RESEARCH_INTERESTS } from '../data/experience';
+import { buildResearchGraph } from '../utils/researchGraph';
 
 const research = (await getCollection('projects'))
   .filter((p) => p.data.kind === 'research')
   .sort((a, b) => a.data.order - b.data.order);
 
-const items: Pub[] = (await getCollection('publications')).map((p) => ({
+const publications = await getCollection('publications');
+
+const items: Pub[] = publications.map((p) => ({
   title: p.data.title,
   authors: p.data.authors,
   venue: p.data.venue,
@@ -22,6 +26,8 @@ const items: Pub[] = (await getCollection('publications')).map((p) => ({
   code: p.data.code,
   tags: p.data.tags,
 }));
+
+const researchGraph = buildResearchGraph(publications, research);
 ---
 
 <Base
@@ -37,15 +43,23 @@ const items: Pub[] = (await getCollection('publications')).map((p) => ({
       Currently, my research focuses on the intersection between Organoid computing, Natural and Artificial Intelligence
     </p>
 
-    <div class="mt-14">
-      <SectionHeading index="01" title="Publications" />
+    <div class="mt-14 -mx-5 max-w-none px-5 sm:mx-0 sm:max-w-none" id="research-map">
+      <SectionHeading index="01" title="Research map" />
+      <p class="mb-4 text-sm text-muted">
+        Interactive graph of publications, projects and topics — hover to explore connections, click nodes with links to open papers.
+      </p>
+      <ResearchGraph client:visible data={researchGraph} height={440} />
+    </div>
+
+    <div class="mt-16">
+      <SectionHeading index="02" title="Publications" />
       <PublicationList client:load items={items} />
     </div>
 
     {
       research.length > 0 && (
         <div class="mt-16">
-          <SectionHeading index="02" title="Research projects" />
+          <SectionHeading index="03" title="Research projects" />
           <div class="space-y-4">
             {research.map((p) => (
               <div class="rounded-xl border border-border bg-surface p-5">
@@ -74,7 +88,7 @@ const items: Pub[] = (await getCollection('publications')).map((p) => ({
     }
 
     <div class="mt-16">
-      <SectionHeading index="03" title="Education" />
+      <SectionHeading index="04" title="Education" />
       <ul class="space-y-5">
         {
           EDUCATION.map((d) => (
@@ -98,7 +112,7 @@ const items: Pub[] = (await getCollection('publications')).map((p) => ({
     </div>
 
     <div class="mt-16">
-      <SectionHeading index="04" title="Research interests" />
+      <SectionHeading index="05" title="Research interests" />
       <div class="flex flex-wrap gap-2">
         {
           RESEARCH_INTERESTS.map((t) => (

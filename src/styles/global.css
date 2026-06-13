@@ -253,6 +253,19 @@ a { color: inherit; text-decoration: none; }
   color: var(--faint);
 }
 
+.hero-ambient {
+  opacity: 0.28;
+  mix-blend-mode: soft-light;
+}
+
+.dark .hero-ambient {
+  opacity: 0.22;
+}
+
+.research-graph-wrap {
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+
 /* View Transitions: gentle fade between pages */
 @media (prefers-reduced-motion: no-preference) {
   ::view-transition-old(root),

@@ -3,12 +3,15 @@ import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import AgentShell from '../components/AgentShell.tsx';
+import AmbientCanvas from '../components/AmbientCanvas.tsx';
 import LiveStatusStrip from '../components/LiveStatusStrip.tsx';
 import GithubActivity from '../components/GithubActivity.tsx';
 import ContributionGraph from '../components/ContributionGraph.astro';
+import ResearchGraph from '../components/ResearchGraph.tsx';
 import { SITE, SOCIAL } from '../consts';
 import { fetchGitHubContributions } from '../utils/githubContributions';
 import { buildSiteIndex } from '../utils/siteIndex';
+import { buildResearchGraph } from '../utils/researchGraph';
 import { withBase } from '../utils/url';
 
 const githubContributions = await fetchGitHubContributions(SITE.githubUser);
@@ -18,6 +21,11 @@ const publications = await getCollection('publications');
 const posts = await getCollection('posts');
 
 const siteIndex = buildSiteIndex(allProjects, publications, posts);
+
+const researchGraph = buildResearchGraph(
+  publications,
+  allProjects.filter((p) => p.data.kind === 'research'),
+);
 
 const projects = allProjects
   .filter((p) => p.data.featured && p.data.kind === 'software')
@@ -38,6 +46,7 @@ const fmtDate = (d: Date) =>
 
 <Base>
   <section class="hero-cockpit">
+    <AmbientCanvas client:idle />
     <div class="hero-grid" aria-hidden="true"></div>
     <div class="hero-glow" aria-hidden="true"></div>
     <div class="hero-scanline" aria-hidden="true"></div>
@@ -189,9 +198,12 @@ const fmtDate = (d: Date) =>
     <SectionHeading
       index={recentPosts.length > 0 ? '04' : '03'}
       title="Research background"
-      href="/academic"
-      cta="academic research"
+      href="/academic#research-map"
+      cta="full research map"
     />
+    <div class="mb-4">
+      <ResearchGraph client:visible data={researchGraph} height={240} compact />
+    </div>
     <a
       href={withBase('/academic')}
       class="group flex flex-col gap-3 rounded-xl border border-border bg-surface p-5 transition-colors hover:border-border-strong sm:flex-row sm:items-center sm:justify-between"
