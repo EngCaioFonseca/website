@@ -8,6 +8,8 @@ interface Props {
   cta?: string;
 }
 const { index, title, href, cta } = Astro.props;
+const isExternal = !!href && /^https?:\/\//.test(href);
+const finalHref = href ? (isExternal ? href : withBase(href)) : undefined;
 ---
 
 <div class="mb-6 flex items-baseline justify-between gap-4">
@@ -17,8 +19,13 @@ const { index, title, href, cta } = Astro.props;
   </h2>
   {
     href && (
-      <a href={withBase(href)} class="mono shrink-0 text-sm text-muted link-underline">
-        {cta ?? 'view all'} →
+      <a
+        href={finalHref}
+        target={isExternal ? '_blank' : undefined}
+        rel={isExternal ? 'noopener noreferrer' : undefined}
+        class="mono shrink-0 text-sm text-muted link-underline"
+      >
+        {cta ?? 'view all'} {isExternal ? '↗' : '→'}
       </a>
     )
   }

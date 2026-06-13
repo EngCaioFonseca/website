@@ -1,8 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import SectionHeading from '../components/SectionHeading.astro';
 import { SITE } from '../consts';
-import { EDUCATION, RESEARCH_INTERESTS } from '../data/experience';
 import { withBase } from '../utils/url';
 ---
 
@@ -27,8 +25,10 @@ import { withBase } from '../utils/url';
       </p>
       <p>
         These days I build software for a living, and I’m most interested in the places where
-        engineering, machine learning and the life sciences overlap. This site is where I keep my
-        work, writing and research in one place.
+        engineering, machine learning and the life sciences overlap. You can dig into the
+        scholarly side of my work — publications, research and education — on the{' '}
+        <a href={withBase('/academic')} class="text-accent link-underline">academic research</a>{' '}
+        page.
       </p>
     </div>
 
@@ -47,41 +47,5 @@ import { withBase } from '../utils/url';
       )
     }
 
-    <div class="mt-14">
-      <SectionHeading index="01" title="Education" />
-      <ul class="space-y-5">
-        {
-          EDUCATION.map((d) => (
-            <li class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
-              <div>
-                <p class="font-medium">
-                  {d.degree} · {d.field}
-                </p>
-                <p class="text-sm text-muted">
-                  {d.org}
-                  {d.location ? `, ${d.location}` : ''}
-                </p>
-              </div>
-              <span class="mono shrink-0 text-[12px] text-faint">
-                {d.start ? `${d.start}–${d.end}` : d.end}
-              </span>
-            </li>
-          ))
-        }
-      </ul>
-    </div>
-
-    <div class="mt-14">
-      <SectionHeading index="02" title="Research interests" />
-      <div class="flex flex-wrap gap-2">
-        {
-          RESEARCH_INTERESTS.map((t) => (
-            <span class="mono rounded-full border border-border px-3 py-1 text-[12px] text-muted">
-              {t}
-            </span>
-          ))
-        }
-      </div>
-    </div>
   </div>
 </Base>

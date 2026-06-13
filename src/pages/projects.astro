@@ -4,21 +4,21 @@ import Base from '../layouts/Base.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import GithubRepos from '../components/GithubRepos.tsx';
 import { SITE } from '../consts';
+import { withBase } from '../utils/url';
 
-const all = await getCollection('projects');
-const research = all
-  .filter((p) => p.data.kind === 'research')
-  .sort((a, b) => a.data.order - b.data.order);
-const software = all
+const software = (await getCollection('projects'))
   .filter((p) => p.data.kind === 'software')
   .sort((a, b) => a.data.order - b.data.order);
 ---
 
-<Base title="Projects" description={`Projects by ${SITE.author} — research and software.`}>
+<Base title="Projects" description={`Software projects built by ${SITE.author}.`}>
   <div class="mx-auto max-w-3xl px-5 py-14">
     <p class="mono mb-3 text-sm text-accent">// projects</p>
     <h1 class="text-3xl font-medium">Projects</h1>
-    <p class="mt-3 max-w-xl text-muted">Research I’ve worked on, and software I’ve built.</p>
+    <p class="mt-3 max-w-xl text-muted">
+      Software I’ve built. For research projects and publications, see{' '}
+      <a href={withBase('/academic')} class="text-accent link-underline">academic research</a>.
+    </p>
 
     {
       software.length > 0 && (
@@ -56,36 +56,5 @@ const software = all
       <SectionHeading index="02" title="From GitHub" />
       <GithubRepos client:visible user={SITE.githubUser} count={6} />
     </div>
-
-    {
-      research.length > 0 && (
-        <div class="mt-12">
-          <SectionHeading index="03" title="Research" />
-          <div class="space-y-4">
-            {research.map((p) => (
-              <div class="rounded-xl border border-border bg-surface p-5">
-                <div class="flex items-center gap-2">
-                  <i class="ti ti-flask text-accent" aria-hidden="true" />
-                  <span class="font-medium">{p.data.title}</span>
-                  {p.data.year && <span class="mono ml-auto text-[12px] text-faint">{p.data.year}</span>}
-                </div>
-                {p.data.role && <p class="mono mt-1 text-[12px] text-faint">{p.data.role}</p>}
-                <p class="mt-2 text-sm text-muted">{p.data.description}</p>
-                {p.data.url && (
-                  <a
-                    href={p.data.url}
-                    class="mono mt-3 inline-block text-[12px] text-accent link-underline"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    learn more ↗
-                  </a>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )
-    }
   </div>
 </Base>

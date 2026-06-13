@@ -15,7 +15,7 @@ export const SITE = {
   email: 'caio.fonseca@waltoninstitute.ie',
 
   // Drop a PDF at public/cv.pdf and set this to '/cv.pdf' to show the download.
-  cvUrl: '',
+  cvUrl: '' as string,
 
   // Account whose public repos power Projects → "From GitHub". Set to your
   // active account; change to 'caioqfonseca' if that one holds the repos to show.
@@ -31,11 +31,11 @@ export const SOCIAL = [
 
 export const NAV = [
   { href: '/', label: 'home' },
-  { href: '/about', label: 'about' },
-  { href: '/experience', label: 'experience' },
   { href: '/projects', label: 'projects' },
-  { href: '/publications', label: 'publications' },
+  { href: '/experience', label: 'experience' },
+  { href: '/academic', label: 'academic' },
   { href: '/writing', label: 'writing' },
+  { href: '/about', label: 'about' },
   { href: '/contact', label: 'contact' },
 ] as const;
 
