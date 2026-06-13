@@ -1,0 +1,61 @@
+---
+// Site-wide motion polish: a "decrypt" reveal on headings and magnetic hover on
+// opted-in buttons. Runs on every page (incl. after View Transitions) and is a
+// no-op under prefers-reduced-motion.
+---
+
+<script>
+  function scramble(el: HTMLElement) {
+    if (el.childElementCount > 0) return;
+    const text = el.getAttribute('data-decrypt-text') ?? el.textContent ?? '';
+    if (!text.trim()) return;
+    el.setAttribute('data-decrypt-text', text);
+    const glyphs = '!<>-_\\/[]{}=+*^?#01αβλΣ';
+    let frame = 0;
+    const total = 20;
+    const id = window.setInterval(() => {
+      frame += 1;
+      const p = frame / total;
+      let out = '';
+      for (let i = 0; i < text.length; i += 1) {
+        const c = text[i];
+        if (c === ' ' || c === '\n') {
+          out += c;
+          continue;
+        }
+        const threshold = (i / text.length) * 0.6 + 0.25;
+        out += p >= threshold ? c : glyphs[Math.floor(Math.random() * glyphs.length)];
+      }
+      el.textContent = out;
+      if (p >= 1) {
+        window.clearInterval(id);
+        el.textContent = text;
+      }
+    }, 28);
+  }
+
+  function magnetic(el: HTMLElement) {
+    if (el.dataset.magBound) return;
+    el.dataset.magBound = '1';
+    const s = 0.3;
+    el.addEventListener('mousemove', (e) => {
+      const r = el.getBoundingClientRect();
+      el.style.transform = `translate(${(e.clientX - (r.left + r.width / 2)) * s}px, ${
+        (e.clientY - (r.top + r.height / 2)) * s
+      }px)`;
+    });
+    el.addEventListener('mouseleave', () => {
+      el.style.transform = '';
+    });
+  }
+
+  function initMotion() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    document
+      .querySelectorAll<HTMLElement>('main h1, [data-decrypt]')
+      .forEach((el) => scramble(el));
+    document.querySelectorAll<HTMLElement>('[data-magnetic]').forEach((el) => magnetic(el));
+  }
+
+  document.addEventListener('astro:page-load', initMotion);
+</script>

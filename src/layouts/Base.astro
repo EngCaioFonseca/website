@@ -5,6 +5,7 @@ import BaseHead from '../components/BaseHead.astro';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import Analytics from '../components/Analytics.astro';
+import MotionFX from '../components/MotionFX.astro';
 import CommandPalette from '../components/CommandPalette.tsx';
 import { buildSiteIndex } from '../utils/siteIndex';
 
@@ -89,5 +90,6 @@ const siteIndex = buildSiteIndex(projects, publications, posts);
     <Footer />
     <CommandPalette client:idle siteIndex={siteIndex} />
     <Analytics />
+    <MotionFX />
   </body>
 </html>
