@@ -1,0 +1,153 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import Terminal from '../components/Terminal.tsx';
+import { SITE, SOCIAL } from '../consts';
+import { withBase } from '../utils/url';
+
+const posts = (await getCollection('posts'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .slice(0, 3);
+
+const projects = (await getCollection('projects'))
+  .filter((p) => p.data.featured)
+  .sort((a, b) => a.data.order - b.data.order)
+  .slice(0, 4);
+
+const pubs = (await getCollection('publications'))
+  .sort((a, b) => b.data.year - a.data.year)
+  .slice(0, 3);
+
+const fmtDate = (d: Date) =>
+  d.toLocaleDateString('en', { year: 'numeric', month: 'short', day: 'numeric' });
+
+const facts = [
+  { k: 'now', v: 'Red Hat' },
+  { k: 'phd', v: 'molecular comms' },
+  { k: 'papers', v: String((await getCollection('publications')).length) },
+  { k: 'based', v: 'remote' },
+];
+---
+
+<Base>
+  <section class="mx-auto max-w-3xl px-5 pb-16 pt-14 sm:pt-20">
+    <div class="grid items-center gap-10 md:grid-cols-[1.05fr_0.95fr]">
+      <div>
+        <p class="mono mb-4 text-sm text-accent">// {SITE.role}</p>
+        <h1 class="text-4xl font-medium leading-[1.08] sm:text-5xl">Hi, I’m Caio.</h1>
+        <p class="mt-5 max-w-md text-lg text-muted">{SITE.description}</p>
+        <div class="mt-7 flex flex-wrap gap-3">
+          <a
+            href={withBase('/projects')}
+            class="rounded-lg bg-accent-strong px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+          >
+            View work →
+          </a>
+          <a
+            href={withBase('/writing')}
+            class="rounded-lg border border-border-strong px-4 py-2 text-sm transition-colors hover:border-accent"
+          >
+            Read writing
+          </a>
+        </div>
+        <div class="mt-7 flex gap-4">
+          {
+            SOCIAL.map((s) => (
+              <a
+                href={s.href}
+                aria-label={s.label}
+                class="text-xl text-muted transition-colors hover:text-accent"
+                target={s.key === 'email' ? undefined : '_blank'}
+                rel="noopener noreferrer"
+              >
+                <i class={s.icon} aria-hidden="true" />
+              </a>
+            ))
+          }
+        </div>
+      </div>
+      <Terminal client:load />
+    </div>
+  </section>
+
+  <section class="border-y border-border">
+    <div class="mx-auto grid max-w-3xl grid-cols-2 sm:grid-cols-4">
+      {
+        facts.map((f, i) => (
+          <div
+            class:list={[
+              'px-5 py-4',
+              i < 2 ? 'border-b border-border sm:border-b-0' : '',
+              i % 2 === 1 ? 'border-l border-border' : '',
+              i === 2 ? 'sm:border-l sm:border-border' : '',
+              i === 3 ? 'sm:border-l sm:border-border' : '',
+            ]}
+          >
+            <p class="mono text-[12px] text-faint">{f.k}</p>
+            <p class="mt-0.5 text-sm font-medium">{f.v}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-5 py-14">
+    <SectionHeading index="01" title="Selected work" href="/projects" cta="all projects" />
+    <div class="grid gap-3 sm:grid-cols-2">
+      {
+        projects.map((p) => (
+          <a
+            href={p.data.url ?? p.data.repo ?? withBase('/projects')}
+            class="group flex flex-col rounded-xl border border-border bg-surface p-4 transition-colors hover:border-border-strong"
+            target={p.data.url || p.data.repo ? '_blank' : undefined}
+            rel="noopener noreferrer"
+          >
+            <div class="flex items-center gap-2">
+              <i
+                class:list={[p.data.kind === 'research' ? 'ti ti-flask' : 'ti ti-folder-code', 'text-accent']}
+                aria-hidden="true"
+              />
+              <span class="font-medium transition-colors group-hover:text-accent">{p.data.title}</span>
+              {p.data.year && <span class="mono ml-auto text-[12px] text-faint">{p.data.year}</span>}
+            </div>
+            <p class="mt-2 text-sm text-muted">{p.data.description}</p>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-5 pb-14">
+    <SectionHeading index="02" title="Recent writing" href="/writing" cta="all posts" />
+    <ul class="divide-y divide-border">
+      {
+        posts.map((p) => (
+          <li>
+            <a href={withBase(`/writing/${p.id}/`)} class="group flex flex-col gap-1 py-4 sm:flex-row sm:items-baseline sm:justify-between">
+              <span class="font-medium transition-colors group-hover:text-accent">{p.data.title}</span>
+              <span class="mono shrink-0 text-[12px] text-faint">{fmtDate(p.data.date)}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-5 pb-16">
+    <SectionHeading index="03" title="Recent publications" href="/publications" cta="all publications" />
+    <ul class="space-y-4">
+      {
+        pubs.map((p) => (
+          <li class="border-l-2 border-border pl-4">
+            <p class="font-medium leading-snug">{p.data.title}</p>
+            <p class="mt-1 text-sm text-muted">
+              {p.data.venue} <span class="mono text-[12px] text-faint">· {p.data.year}</span>
+            </p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Base>

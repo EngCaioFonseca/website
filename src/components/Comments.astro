@@ -1,0 +1,30 @@
+---
+import { SERVICES } from '../consts';
+const g = SERVICES.giscus;
+const enabled = Boolean(g.repo && g.repoId && g.categoryId);
+---
+
+{
+  enabled && (
+    <section class="mt-14 border-t border-border pt-8">
+      <h2 class="mono mb-4 text-sm text-faint">comments</h2>
+      <script
+        is:inline
+        src="https://giscus.app/client.js"
+        data-repo={g.repo}
+        data-repo-id={g.repoId}
+        data-category={g.category}
+        data-category-id={g.categoryId}
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        crossorigin="anonymous"
+        async
+      />
+    </section>
+  )
+}

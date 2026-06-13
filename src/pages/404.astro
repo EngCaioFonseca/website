@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import { withBase } from '../utils/url';
+---
+
+<Base title="404 — Not found" description="Page not found.">
+  <div class="mx-auto flex max-w-2xl flex-col items-start px-5 py-24">
+    <div class="term w-full max-w-md rounded-xl p-4 font-mono text-[13px] leading-relaxed">
+      <p><span style="color: var(--term-prompt)">$</span> cd {Astro.url.pathname}</p>
+      <p style="color: var(--term-muted)">cd: no such file or directory: {Astro.url.pathname}</p>
+      <p class="mt-2"><span style="color: var(--term-prompt)">$</span> <span class="cursor-blink">▋</span></p>
+    </div>
+    <h1 class="mt-8 text-3xl font-medium">Page not found</h1>
+    <p class="mt-2 text-muted">That route doesn’t exist — let’s get you back on track.</p>
+    <a
+      href={withBase('/')}
+      class="mt-6 rounded-lg bg-accent-strong px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+    >
+      ← Back home
+    </a>
+  </div>
+</Base>

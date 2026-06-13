@@ -1,0 +1,64 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import BaseHead from '../components/BaseHead.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import Analytics from '../components/Analytics.astro';
+import CommandPalette from '../components/CommandPalette.tsx';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  article?: boolean;
+}
+
+const { title, description, image, article } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead title={title} description={description} image={image} article={article} />
+    <ClientRouter />
+    <script is:inline>
+      (function () {
+        function applyTheme() {
+          var t = localStorage.getItem('theme');
+          var d = t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.classList.toggle('dark', d);
+        }
+        applyTheme();
+        if (!window.__ui) {
+          window.__ui = true;
+          document.addEventListener('click', function (e) {
+            if (e.target.closest('#theme-toggle')) {
+              var d = document.documentElement.classList.toggle('dark');
+              localStorage.setItem('theme', d ? 'dark' : 'light');
+            } else if (e.target.closest('[data-cmdk]')) {
+              window.dispatchEvent(new Event('cmdk:open'));
+            } else if (e.target.closest('#menu-toggle')) {
+              var m = document.getElementById('mobile-menu');
+              if (m) m.classList.toggle('hidden');
+            }
+          });
+          document.addEventListener('astro:after-swap', function () {
+            applyTheme();
+            var m = document.getElementById('mobile-menu');
+            if (m) m.classList.add('hidden');
+          });
+        }
+      })();
+    </script>
+  </head>
+  <body class="min-h-dvh">
+    <a href="#main" class="skip-link">Skip to content</a>
+    <Nav />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <CommandPalette client:idle />
+    <Analytics />
+  </body>
+</html>

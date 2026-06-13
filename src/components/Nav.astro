@@ -1,0 +1,80 @@
+---
+import { NAV } from '../consts';
+import { withBase } from '../utils/url';
+
+const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const links = NAV.filter((n) => n.href !== '/');
+const isActive = (href: string) => {
+  const h = withBase(href).replace(/\/+$/, '') || '/';
+  return path === h || path.startsWith(`${h}/`);
+};
+---
+
+<header class="sticky top-0 z-40 border-b border-border bg-bg/80 backdrop-blur">
+  <nav class="mx-auto flex max-w-3xl items-center justify-between px-5 py-3" aria-label="Primary">
+    <a href={withBase('/')} class="mono text-[15px] font-medium tracking-tight">
+      caio<span class="text-accent">.</span>fonseca
+    </a>
+
+    <div class="hidden items-center gap-5 md:flex">
+      {
+        links.map((n) => (
+          <a
+            href={withBase(n.href)}
+            class:list={[
+              'mono text-sm transition-colors hover:text-accent',
+              isActive(n.href) ? 'text-accent' : 'text-muted',
+            ]}
+            aria-current={isActive(n.href) ? 'page' : undefined}
+          >
+            {n.label}
+          </a>
+        ))
+      }
+    </div>
+
+    <div class="flex items-center gap-1">
+      <button
+        data-cmdk
+        class="flex items-center gap-1.5 rounded-md border border-border px-2 py-1.5 text-muted transition-colors hover:border-border-strong hover:text-text"
+        aria-label="Open command menu"
+      >
+        <i class="ti ti-search text-[15px]" aria-hidden="true"></i>
+        <kbd class="mono hidden text-[11px] sm:inline">⌘K</kbd>
+      </button>
+      <button
+        id="theme-toggle"
+        class="rounded-md border border-border p-1.5 text-muted transition-colors hover:border-border-strong hover:text-text"
+        aria-label="Toggle colour theme"
+      >
+        <i class="ti ti-moon text-[15px] dark:hidden" aria-hidden="true"></i>
+        <i class="ti ti-sun hidden text-[15px] dark:inline" aria-hidden="true"></i>
+      </button>
+      <button
+        id="menu-toggle"
+        class="rounded-md border border-border p-1.5 text-muted transition-colors hover:border-border-strong hover:text-text md:hidden"
+        aria-label="Toggle navigation menu"
+      >
+        <i class="ti ti-menu-2 text-[15px]" aria-hidden="true"></i>
+      </button>
+    </div>
+  </nav>
+
+  <div id="mobile-menu" class="hidden border-t border-border md:hidden">
+    <div class="mx-auto flex max-w-3xl flex-col px-5 py-1">
+      {
+        links.map((n) => (
+          <a
+            href={withBase(n.href)}
+            class:list={[
+              'mono border-b border-border py-3 text-sm last:border-0',
+              isActive(n.href) ? 'text-accent' : 'text-muted',
+            ]}
+          >
+            {n.label}
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</header>

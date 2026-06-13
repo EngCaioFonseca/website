@@ -1,0 +1,25 @@
+---
+import { withBase } from '../utils/url';
+
+interface Props {
+  index?: string;
+  title: string;
+  href?: string;
+  cta?: string;
+}
+const { index, title, href, cta } = Astro.props;
+---
+
+<div class="mb-6 flex items-baseline justify-between gap-4">
+  <h2 class="flex items-baseline gap-3 text-xl font-medium">
+    {index && <span class="mono text-sm text-accent">{index}</span>}
+    <span>{title}</span>
+  </h2>
+  {
+    href && (
+      <a href={withBase(href)} class="mono shrink-0 text-sm text-muted link-underline">
+        {cta ?? 'view all'} →
+      </a>
+    )
+  }
+</div>

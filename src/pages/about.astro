@@ -1,0 +1,87 @@
+---
+import Base from '../layouts/Base.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import { SITE } from '../consts';
+import { EDUCATION, RESEARCH_INTERESTS } from '../data/experience';
+import { withBase } from '../utils/url';
+---
+
+<Base title="About" description={`About ${SITE.author} — software engineer and researcher.`}>
+  <div class="mx-auto max-w-2xl px-5 py-14">
+    <p class="mono mb-3 text-sm text-accent">// about</p>
+    <h1 class="text-3xl font-medium">About</h1>
+
+    <div class="mt-8 space-y-4 text-[17px] leading-relaxed text-muted">
+      <p>
+        I’m a software engineer at <span class="text-text">Red Hat</span>, with a background that
+        runs from electrical engineering through computational science to a PhD in
+        <span class="text-text">molecular communications</span>.
+      </p>
+      <p>
+        My doctoral work, within the EU H2020-FET <span class="text-text">GLADIATOR</span> project,
+        focused on the mathematical and computational modelling of molecular communication systems
+        in the brain — aimed at treating brain pathologies, in particular glioblastoma multiforme.
+        Along the way I worked on EEG signal processing and brain–machine interfaces, biopolymer
+        diffusion, and lithium-ion battery behaviour, at institutions including UCLA, RIT and the
+        Edmond &amp; Lily Safra International Institute of Neuroscience.
+      </p>
+      <p>
+        These days I build software for a living, and I’m most interested in the places where
+        engineering, machine learning and the life sciences overlap. This site is where I keep my
+        work, writing and research in one place.
+      </p>
+    </div>
+
+    {
+      SITE.cvUrl && (
+        <div class="mt-8">
+          <a
+            href={SITE.cvUrl.startsWith('/') ? withBase(SITE.cvUrl) : SITE.cvUrl}
+            class="inline-flex items-center gap-2 rounded-lg border border-border-strong px-4 py-2 text-sm transition-colors hover:border-accent"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class="ti ti-download" aria-hidden="true" /> Download CV
+          </a>
+        </div>
+      )
+    }
+
+    <div class="mt-14">
+      <SectionHeading index="01" title="Education" />
+      <ul class="space-y-5">
+        {
+          EDUCATION.map((d) => (
+            <li class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+              <div>
+                <p class="font-medium">
+                  {d.degree} · {d.field}
+                </p>
+                <p class="text-sm text-muted">
+                  {d.org}
+                  {d.location ? `, ${d.location}` : ''}
+                </p>
+              </div>
+              <span class="mono shrink-0 text-[12px] text-faint">
+                {d.start ? `${d.start}–${d.end}` : d.end}
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div class="mt-14">
+      <SectionHeading index="02" title="Research interests" />
+      <div class="flex flex-wrap gap-2">
+        {
+          RESEARCH_INTERESTS.map((t) => (
+            <span class="mono rounded-full border border-border px-3 py-1 text-[12px] text-muted">
+              {t}
+            </span>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</Base>

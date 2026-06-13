@@ -1,0 +1,37 @@
+---
+import Base from '../layouts/Base.astro';
+import { EXPERIENCE } from '../data/experience';
+import { SITE } from '../consts';
+---
+
+<Base title="Experience" description={`Professional experience of ${SITE.author}.`}>
+  <div class="mx-auto max-w-2xl px-5 py-14">
+    <p class="mono mb-3 text-sm text-accent">// experience</p>
+    <h1 class="text-3xl font-medium">Experience</h1>
+
+    <ol class="mt-10 border-l border-border">
+      {
+        EXPERIENCE.map((job) => (
+          <li class="relative pb-9 pl-6 last:pb-0">
+            <span
+              class:list={[
+                'absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full',
+                job.end === 'Present' ? 'bg-accent' : 'bg-border-strong',
+              ]}
+              aria-hidden="true"
+            />
+            <div class="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between">
+              <p class="font-medium">{job.role}</p>
+              <span class="mono shrink-0 text-[12px] text-faint">
+                {job.start === job.end ? job.start : `${job.start} – ${job.end}`}
+              </span>
+            </div>
+            <p class="text-sm text-accent">{job.org}</p>
+            {job.location && <p class="mono text-[12px] text-faint">{job.location}</p>}
+            {job.summary && <p class="mt-2 text-sm text-muted">{job.summary}</p>}
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</Base>

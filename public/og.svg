@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="Caio Fonseca — software engineer and researcher">
+  <rect width="1200" height="630" fill="#0d0d0c" />
+  <rect x="0" y="0" width="10" height="630" fill="#2bbd92" />
+  <text x="80" y="250" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="30" fill="#5dcaa5">$ whoami</text>
+  <text x="80" y="345" font-family="Inter, system-ui, sans-serif" font-size="84" font-weight="600" fill="#f1efe8">Caio Fonseca</text>
+  <text x="80" y="415" font-family="Inter, system-ui, sans-serif" font-size="36" fill="#a8a69d">Software engineer &amp; researcher</text>
+  <text x="80" y="560" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="26" fill="#76746c">engcaiofonseca.github.io/website</text>
+</svg>

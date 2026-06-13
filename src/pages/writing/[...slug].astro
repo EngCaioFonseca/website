@@ -1,0 +1,41 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Comments from '../../components/Comments.astro';
+import { withBase } from '../../utils/url';
+
+export async function getStaticPaths() {
+  const posts = (await getCollection('posts')).filter((p) => !p.data.draft);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const fmtDate = (d: Date) =>
+  d.toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+
+<Base title={post.data.title} description={post.data.description} article={true}>
+  <article class="mx-auto max-w-2xl px-5 py-14">
+    <a href={withBase('/writing')} class="mono text-sm text-muted link-underline">← writing</a>
+    <h1 class="mt-4 text-3xl font-medium leading-tight">{post.data.title}</h1>
+    <p class="mono mt-2 text-sm text-faint">
+      {fmtDate(post.data.date)}
+      {post.data.updated && <span> · updated {fmtDate(post.data.updated)}</span>}
+    </p>
+    {
+      post.data.tags.length > 0 && (
+        <div class="mono mt-3 flex flex-wrap gap-2 text-[12px] text-faint">
+          {post.data.tags.map((t) => (
+            <span>#{t}</span>
+          ))}
+        </div>
+      )
+    }
+    <div class="prose prose-lg mt-8">
+      <Content />
+    </div>
+    <Comments />
+  </article>
+</Base>
