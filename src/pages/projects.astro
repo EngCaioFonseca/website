@@ -16,7 +16,7 @@ const software = (await getCollection('projects'))
     <p class="mono mb-3 text-sm text-accent">// projects</p>
     <h1 class="text-3xl font-medium">Projects</h1>
     <p class="mt-3 max-w-xl text-muted">
-      Software I’ve built. For research projects and publications, see{' '}
+      Software I work as a maintainer and contributor as part of the Red Hat OSAIPO Data team. For research projects and publications, see{' '}
       <a href={withBase('/academic')} class="text-accent link-underline">academic research</a>.
     </p>
 
@@ -51,10 +51,3 @@ const software = (await getCollection('projects'))
         </div>
       )
     }
-
-    <div class="mt-12">
-      <SectionHeading index="02" title="From GitHub" />
-      <GithubRepos client:visible user={SITE.githubUser} count={6} />
-    </div>
-  </div>
-</Base>

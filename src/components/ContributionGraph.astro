@@ -1,0 +1,78 @@
+---
+import {
+  fmtContributionDate,
+  monthLabels,
+  contributionLevelClass,
+  type ContributionCalendar,
+} from '../utils/githubContributions';
+
+type Props = {
+  calendar: ContributionCalendar;
+  user: string;
+};
+
+const { calendar, user } = Astro.props;
+const months = monthLabels(calendar.weeks);
+const summary = `${calendar.totalContributions.toLocaleString()} contribution${
+  calendar.totalContributions === 1 ? '' : 's'
+} in the last year`;
+---
+
+<div class="mb-4 border-b border-border pb-4">
+  <div class="overflow-x-auto pb-1">
+    <div class="inline-block min-w-0">
+      <div
+        class="relative mb-1 text-[10px] text-faint"
+        style={`margin-left: 18px; min-height: 14px; width: ${calendar.weeks.length * 13}px;`}
+      >
+        {
+          months.map(({ label, col }) => (
+            <span class="mono absolute top-0" style={`left: ${col * 13}px;`}>
+              {label}
+            </span>
+          ))
+        }
+      </div>
+
+      <div class="flex gap-[2px]">
+        <div class="flex flex-col gap-[2px] pt-[14px]">
+          {
+            ['', 'Mon', '', 'Wed', '', 'Fri', ''].map((d) => (
+              <span class="mono flex h-[11px] items-center text-[9px] leading-none text-faint">
+                {d}
+              </span>
+            ))
+          }
+        </div>
+
+        <div
+          class="grid gap-[2px] pt-[14px]"
+          style={`grid-template-columns: repeat(${calendar.weeks.length}, 11px);`}
+          role="img"
+          aria-label={summary}
+        >
+          {
+            calendar.weeks.map((week) =>
+              week.map((day) => (
+                <span
+                  class={contributionLevelClass(day.count)}
+                  title={`${day.count} contribution${day.count === 1 ? '' : 's'} on ${fmtContributionDate(day.date)}`}
+                />
+              )),
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="mono mt-2 text-[12px] text-muted">{summary}</p>
+  <a
+    class="mono mt-1 inline-block text-[12px] text-faint link-underline"
+    href={`https://github.com/${user}`}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    Learn how we count contributions ↗
+  </a>
+</div>

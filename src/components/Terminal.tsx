@@ -8,10 +8,10 @@ const SCRIPT: Entry[] = [
   { kind: 'cmd', text: 'whoami' },
   { kind: 'out', text: 'caio fonseca — software engineer' },
   { kind: 'cmd', text: 'background --short' },
-  { kind: 'out', text: 'phd · molecular communications' },
-  { kind: 'out', text: 'ex: ucla · rit · safra institute' },
+  { kind: 'out', text: 'phd · Computational Science and Applied maths' },
+  { kind: 'out', text: 'ex: UCLA · RIT · IINELS Brain Institute' },
   { kind: 'cmd', text: 'stack' },
-  { kind: 'out', text: 'python · ml · simulation · systems' },
+  { kind: 'out', text: 'python · ai engineering · simulation · systems design · postgres' },
 ];
 
 function usePrefersReducedMotion() {

@@ -132,12 +132,14 @@ export default function GithubActivity({ user, count = 6 }: { user: string; coun
     .slice(0, count);
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-5">
+    <>
       <div className="mb-4 flex flex-wrap gap-x-6 gap-y-2 border-b border-border pb-4">
         <Stat label="repos" value={profile?.public_repos} />
         <Stat label="followers" value={profile?.followers} />
         <Stat label="following" value={profile?.following} />
       </div>
+
+      <p className="mono mb-3 text-[12px] text-faint">Contribution activity</p>
 
       {!events && (
         <div className="space-y-3">
@@ -170,6 +172,6 @@ export default function GithubActivity({ user, count = 6 }: { user: string; coun
           </li>
         ))}
       </ul>
-    </div>
+    </>
   );
 }

@@ -4,8 +4,12 @@ import Base from '../layouts/Base.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import Terminal from '../components/Terminal.tsx';
 import GithubActivity from '../components/GithubActivity.tsx';
+import ContributionGraph from '../components/ContributionGraph.astro';
 import { SITE, SOCIAL } from '../consts';
+import { fetchGitHubContributions } from '../utils/githubContributions';
 import { withBase } from '../utils/url';
+
+const githubContributions = await fetchGitHubContributions(SITE.githubUser);
 
 const projects = (await getCollection('projects'))
   .filter((p) => p.data.featured && p.data.kind === 'software')
@@ -123,7 +127,27 @@ const facts = [
       href={`https://github.com/${SITE.githubUser}`}
       cta="view profile"
     />
-    <GithubActivity client:idle user={SITE.githubUser} count={6} />
+    <div class="rounded-xl border border-border bg-surface p-5">
+      {
+        githubContributions ? (
+          <ContributionGraph calendar={githubContributions} user={SITE.githubUser} />
+        ) : (
+          <p class="mb-4 border-b border-border pb-4 text-sm text-muted">
+            Contribution calendar unavailable — view it on{' '}
+            <a
+              href={`https://github.com/${SITE.githubUser}`}
+              class="text-accent link-underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub ↗
+            </a>
+            .
+          </p>
+        )
+      }
+      <GithubActivity client:idle user={SITE.githubUser} count={6} />
+    </div>
   </section>
 
   {/* Recent writing — disabled until there are posts. Re-enable this section and

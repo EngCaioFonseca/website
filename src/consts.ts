@@ -11,8 +11,7 @@ export const SITE = {
   author: 'Caio Fonseca',
   locale: 'en',
 
-  // TODO(caio): confirm your public-facing email.
-  email: 'caio.fonseca@waltoninstitute.ie',
+  email: 'cfonseca@redhat.com',
 
   // Drop a PDF at public/cv.pdf and set this to '/cv.pdf' to show the download.
   cvUrl: '' as string,

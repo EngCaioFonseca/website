@@ -13,6 +13,8 @@ pnpm-debug.log*
 .env
 .env.production
 .env.*.local
+# dev cache (GitHub contribution calendar)
+.cache/
 # macOS
 .DS_Store
 # editor
