@@ -50,6 +50,10 @@
 :root[data-accent="violet"] { --accent: #6d4ad1; --accent-strong: #553aa8; --term-prompt: #9a86f0; }
 .dark[data-accent="violet"] { --accent: #9a86f0; --accent-strong: #b9abf6; --term-prompt: #b9abf6; }
 
+/* Red team mode (offensive-security red, overclock.sh-style) */
+:root[data-accent="red"] { --accent: #d23b30; --accent-strong: #a62c23; --term-prompt: #ff6b5e; }
+.dark[data-accent="red"] { --accent: #f0564a; --accent-strong: #ff8079; --term-prompt: #ff6b5e; }
+
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
@@ -283,6 +287,17 @@ a { color: inherit; text-decoration: none; }
 }
 
 .dark .hero-bionet { opacity: 0.8; }
+
+/* Red team toggle button */
+#redteam-toggle:hover {
+  color: #e24b4a !important;
+  border-color: color-mix(in srgb, #e24b4a 45%, transparent) !important;
+}
+[data-accent="red"] #redteam-toggle {
+  color: #fff !important;
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
 
 /* Magnetic buttons (motion polish) */
 [data-magnetic] {
