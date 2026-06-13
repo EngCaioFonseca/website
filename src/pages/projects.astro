@@ -51,3 +51,10 @@ const software = (await getCollection('projects'))
         </div>
       )
     }
+
+    <div class="mt-12">
+      <SectionHeading index="02" title="From GitHub" href={`https://github.com/${SITE.githubUser}`} cta="profile" />
+      <GithubRepos client:idle user={SITE.githubUser} count={6} />
+    </div>
+  </div>
+</Base>

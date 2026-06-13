@@ -2,99 +2,111 @@
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import SectionHeading from '../components/SectionHeading.astro';
-import Terminal from '../components/Terminal.tsx';
+import AgentShell from '../components/AgentShell.tsx';
+import LiveStatusStrip from '../components/LiveStatusStrip.tsx';
 import GithubActivity from '../components/GithubActivity.tsx';
 import ContributionGraph from '../components/ContributionGraph.astro';
 import { SITE, SOCIAL } from '../consts';
 import { fetchGitHubContributions } from '../utils/githubContributions';
+import { buildSiteIndex } from '../utils/siteIndex';
 import { withBase } from '../utils/url';
 
 const githubContributions = await fetchGitHubContributions(SITE.githubUser);
 
-const projects = (await getCollection('projects'))
+const allProjects = await getCollection('projects');
+const publications = await getCollection('publications');
+const posts = await getCollection('posts');
+
+const siteIndex = buildSiteIndex(allProjects, publications, posts);
+
+const projects = allProjects
   .filter((p) => p.data.featured && p.data.kind === 'software')
   .sort((a, b) => a.data.order - b.data.order)
   .slice(0, 4);
 
-const paperCount = (await getCollection('publications')).length;
+const paperCount = publications.length;
+const softwareCount = allProjects.filter((p) => p.data.kind === 'software').length;
 
-// Recent writing is disabled for now (no posts yet). To re-enable, restore the
-// `posts` query + `fmtDate` below and the "Recent writing" section in the body.
-// const posts = (await getCollection('posts'))
-//   .filter((p) => !p.data.draft)
-//   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
-//   .slice(0, 3);
-// const fmtDate = (d: Date) =>
-//   d.toLocaleDateString('en', { year: 'numeric', month: 'short', day: 'numeric' });
+const recentPosts = posts
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .slice(0, 3);
 
-const facts = [
-  { k: 'now', v: 'Red Hat' },
-  { k: 'role', v: 'software engineer' },
-  { k: 'phd', v: 'molecular comms' },
-  { k: 'based', v: 'remote' },
-];
+const fmtDate = (d: Date) =>
+  d.toLocaleDateString('en', { year: 'numeric', month: 'short', day: 'numeric' });
 ---
 
 <Base>
-  <section class="mx-auto max-w-3xl px-5 pb-16 pt-14 sm:pt-20">
-    <div class="grid items-center gap-10 md:grid-cols-[1.05fr_0.95fr]">
-      <div>
-        <p class="mono mb-4 text-sm text-accent">// {SITE.role}</p>
-        <h1 class="text-4xl font-medium leading-[1.08] sm:text-5xl">Hi, I’m Caio.</h1>
-        <p class="mt-5 max-w-md text-lg text-muted">{SITE.description}</p>
-        <div class="mt-7 flex flex-wrap gap-3">
-          <a
-            href={withBase('/projects')}
-            class="rounded-lg bg-accent-strong px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
-          >
-            View work →
-          </a>
-          <a
-            href={withBase('/writing')}
-            class="rounded-lg border border-border-strong px-4 py-2 text-sm transition-colors hover:border-accent"
-          >
-            Read writing
-          </a>
-        </div>
-        <div class="mt-7 flex gap-4">
-          {
-            SOCIAL.map((s) => (
-              <a
-                href={s.href}
-                aria-label={s.label}
-                class="text-xl text-muted transition-colors hover:text-accent"
-                target={s.key === 'email' ? undefined : '_blank'}
-                rel="noopener noreferrer"
-              >
-                <i class={s.icon} aria-hidden="true" />
-              </a>
-            ))
-          }
-        </div>
-      </div>
-      <Terminal client:load />
-    </div>
-  </section>
+  <section class="hero-cockpit">
+    <div class="hero-grid" aria-hidden="true"></div>
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="hero-scanline" aria-hidden="true"></div>
 
-  <section class="border-y border-border">
-    <div class="mx-auto grid max-w-3xl grid-cols-2 sm:grid-cols-4">
-      {
-        facts.map((f, i) => (
-          <div
-            class:list={[
-              'px-5 py-4',
-              i < 2 ? 'border-b border-border sm:border-b-0' : '',
-              i % 2 === 1 ? 'border-l border-border' : '',
-              i === 2 ? 'sm:border-l sm:border-border' : '',
-              i === 3 ? 'sm:border-l sm:border-border' : '',
-            ]}
-          >
-            <p class="mono text-[12px] text-faint">{f.k}</p>
-            <p class="mt-0.5 text-sm font-medium">{f.v}</p>
+    <div class="relative z-10 mx-auto max-w-5xl px-5 pb-0 pt-12 sm:pt-16">
+      <div class="grid items-start gap-8 lg:grid-cols-[1fr_1.05fr] lg:gap-10">
+        <div class="pt-1">
+          <div class="hero-badge mb-5">
+            <span class="status-live" aria-hidden="true"></span>
+            agent shell · local index
           </div>
-        ))
-      }
+          <p class="mono mb-3 text-sm text-accent">// {SITE.role}</p>
+          <h1 class="text-4xl font-medium leading-[1.06] tracking-tight sm:text-[2.75rem]">
+            Hi, I’m Caio.
+          </h1>
+          <p class="mt-5 max-w-lg text-lg leading-relaxed text-muted">{SITE.description}</p>
+          <div class="mt-7 flex flex-wrap gap-3">
+            <a
+              href={withBase('/projects')}
+              class="rounded-lg bg-accent-strong px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            >
+              View work →
+            </a>
+            <button
+              type="button"
+              data-cmdk
+              class="rounded-lg border border-border-strong px-4 py-2 text-sm transition-colors hover:border-accent"
+            >
+              ⌘K palette
+            </button>
+            <a
+              href={withBase('/contact')}
+              class="rounded-lg border border-border px-4 py-2 text-sm text-muted transition-colors hover:border-border-strong hover:text-text"
+            >
+              Contact
+            </a>
+          </div>
+          <div class="mt-7 flex gap-4">
+            {
+              SOCIAL.map((s) => (
+                <a
+                  href={s.href}
+                  aria-label={s.label}
+                  class="text-xl text-muted transition-colors hover:text-accent"
+                  target={s.key === 'email' ? undefined : '_blank'}
+                  rel="noopener noreferrer"
+                >
+                  <i class={s.icon} aria-hidden="true" />
+                </a>
+              ))
+            }
+          </div>
+          <p class="mono mt-8 hidden text-[11px] text-faint sm:block">
+            try in shell: <span class="text-muted">ask glioblastoma</span> ·
+            <span class="text-muted"> papers</span> ·
+            <span class="text-muted"> projects</span>
+          </p>
+        </div>
+        <AgentShell client:load siteIndex={siteIndex} />
+      </div>
     </div>
+
+    <LiveStatusStrip
+      client:idle
+      githubUser={SITE.githubUser}
+      contributions={githubContributions?.totalContributions}
+      papers={paperCount}
+      projects={softwareCount}
+    />
   </section>
 
   <section class="mx-auto max-w-3xl px-5 py-14">
@@ -150,25 +162,36 @@ const facts = [
     </div>
   </section>
 
-  {/* Recent writing — disabled until there are posts. Re-enable this section and
-      the `posts`/`fmtDate` frontmatter above to bring it back.
-  <section class="mx-auto max-w-3xl px-5 pb-14">
-    <SectionHeading index="02" title="Recent writing" href="/writing" cta="all posts" />
-    <ul class="divide-y divide-border">
-      {posts.map((p) => (
-        <li>
-          <a href={withBase(`/writing/${p.id}/`)} class="group flex flex-col gap-1 py-4 sm:flex-row sm:items-baseline sm:justify-between">
-            <span class="font-medium transition-colors group-hover:text-accent">{p.data.title}</span>
-            <span class="mono shrink-0 text-[12px] text-faint">{fmtDate(p.data.date)}</span>
-          </a>
-        </li>
-      ))}
-    </ul>
-  </section>
-  */}
+  {
+    recentPosts.length > 0 && (
+      <section class="mx-auto max-w-3xl px-5 pb-14">
+        <SectionHeading index="03" title="Recent writing" href="/writing" cta="all posts" />
+        <ul class="divide-y divide-border">
+          {recentPosts.map((p) => (
+            <li>
+              <a
+                href={withBase(`/writing/${p.id}/`)}
+                class="group flex flex-col gap-1 py-4 sm:flex-row sm:items-baseline sm:justify-between"
+              >
+                <span class="font-medium transition-colors group-hover:text-accent">
+                  {p.data.title}
+                </span>
+                <span class="mono shrink-0 text-[12px] text-faint">{fmtDate(p.data.date)}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
 
   <section class="mx-auto max-w-3xl px-5 pb-16">
-    <SectionHeading index="03" title="Research background" href="/academic" cta="academic research" />
+    <SectionHeading
+      index={recentPosts.length > 0 ? '04' : '03'}
+      title="Research background"
+      href="/academic"
+      cta="academic research"
+    />
     <a
       href={withBase('/academic')}
       class="group flex flex-col gap-3 rounded-xl border border-border bg-surface p-5 transition-colors hover:border-border-strong sm:flex-row sm:items-center sm:justify-between"
