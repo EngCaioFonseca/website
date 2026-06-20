@@ -11,6 +11,7 @@ const photo = withBase('/hero/caio-bjj.jpg');
 <section id="narrative-hero" aria-label="Intro" data-photo={photo}>
   <div class="narr-sticky">
     <div class="narr-layer narr-photo" style={`background-image:url('${photo}')`}></div>
+    <div class="narr-layer narr-duo"></div>
     <div class="narr-layer narr-vignette"></div>
 
     <svg class="narr-layer narr-bci" viewBox="0 0 400 400" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
@@ -96,13 +97,10 @@ $ stack: python · ml · systems</pre>
     transform: scale(1.05);
     will-change: transform, opacity;
   }
-  .narr-photo::after {
-    content: '';
-    position: absolute;
-    inset: 0;
+  .narr-duo {
     background: var(--accent);
     mix-blend-mode: color;
-    opacity: var(--duo, 0);
+    opacity: 0;
   }
   .narr-vignette {
     pointer-events: none;
@@ -245,6 +243,7 @@ $ stack: python · ml · systems</pre>
 
     const sticky = section.querySelector('.narr-sticky') as HTMLElement;
     const photo = section.querySelector('.narr-photo') as HTMLElement;
+    const duo = section.querySelector('.narr-duo') as HTMLElement;
     const bci = section.querySelector('.narr-bci') as HTMLElement;
     const code = section.querySelector('.narr-code') as HTMLElement;
     const hud = section.querySelector('.narr-hud') as HTMLElement;
@@ -255,8 +254,9 @@ $ stack: python · ml · systems</pre>
 
     const apply = (p: number) => {
       photo.style.transform = `scale(${(1.05 + p * 0.12).toFixed(3)})`;
-      photo.style.setProperty('--duo', band(p, 0.12, 0.5).toFixed(3));
-      photo.style.opacity = (1 - band(p, 0.62, 0.9)).toFixed(3);
+      const photoVis = 1 - band(p, 0.62, 0.9);
+      photo.style.opacity = photoVis.toFixed(3);
+      if (duo) duo.style.opacity = (band(p, 0.12, 0.5) * photoVis * 0.85).toFixed(3);
       bci.style.opacity = fade(p, 0.14, 0.34, 0.6, 0.82).toFixed(3);
       code.style.opacity = fade(p, 0.5, 0.68, 1.1, 1.2).toFixed(3);
       hud.style.opacity = band(p, 0.72, 0.96).toFixed(3);
