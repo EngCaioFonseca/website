@@ -51,9 +51,22 @@
 
   function initMotion() {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // Decrypt each heading as it scrolls into view (so it's actually seen,
+    // even below a tall intro), once per element.
+    const io = new IntersectionObserver(
+      (entries, obs) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            scramble(e.target as HTMLElement);
+            obs.unobserve(e.target);
+          }
+        }
+      },
+      { threshold: 0.6, rootMargin: '0px 0px -8% 0px' },
+    );
     document
       .querySelectorAll<HTMLElement>('main h1, [data-decrypt]')
-      .forEach((el) => scramble(el));
+      .forEach((el) => io.observe(el));
     document.querySelectorAll<HTMLElement>('[data-magnetic]').forEach((el) => magnetic(el));
   }
 
