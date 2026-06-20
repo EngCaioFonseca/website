@@ -20,5 +20,3 @@ pnpm-debug.log*
 .vscode/*
 !.vscode/extensions.json
 .idea/
-
-public/hero/caio-bjj.jpg
