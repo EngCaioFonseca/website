@@ -1,0 +1,318 @@
+---
+import { withBase } from '../utils/url';
+
+// Scroll-scrubbed narrative intro: duotone BJJ photo → neural/BCI overlay grows
+// on the head → dissolves into code → resolves into an engineer HUD, handing off
+// to the cockpit hero below. Hidden on mobile / reduced-motion (CSS) so it never
+// costs those users. Drop your photo at public/hero/caio-bjj.jpg.
+const photo = withBase('/hero/caio-bjj.jpg');
+---
+
+<section id="narrative-hero" aria-label="Intro" data-photo={photo}>
+  <div class="narr-sticky">
+    <div class="narr-layer narr-photo" style={`background-image:url('${photo}')`}></div>
+    <div class="narr-layer narr-vignette"></div>
+
+    <svg class="narr-layer narr-bci" viewBox="0 0 400 400" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
+      <g stroke="var(--accent)" fill="none" stroke-width="1.1" opacity="0.9">
+        <path d="M120 120 Q200 70 280 120" stroke-width="2"></path>
+        <path d="M120 120 L95 200 M280 120 L305 200 M200 86 L200 150"></path>
+        <path d="M150 160 L200 200 L250 160 M150 230 L200 200 L250 230"></path>
+        <path d="M110 175 L170 250 M290 175 L230 250 M200 150 L200 250"></path>
+      </g>
+      <g fill="var(--accent)">
+        <circle cx="120" cy="120" r="5"></circle>
+        <circle cx="280" cy="120" r="5"></circle>
+        <circle cx="200" cy="86" r="5"></circle>
+        <circle cx="95" cy="200" r="4"></circle>
+        <circle cx="305" cy="200" r="4"></circle>
+        <circle cx="200" cy="150" r="6"></circle>
+        <circle cx="150" cy="160" r="3.5"></circle>
+        <circle cx="250" cy="160" r="3.5"></circle>
+        <circle cx="200" cy="200" r="4.5"></circle>
+        <circle cx="150" cy="230" r="3.5"></circle>
+        <circle cx="250" cy="230" r="3.5"></circle>
+        <circle cx="200" cy="250" r="4"></circle>
+      </g>
+    </svg>
+
+    <div class="narr-layer narr-code" aria-hidden="true">
+      <pre class="mono">$ load profile --from neuro
+&gt; mapping signals → models
+&gt; calibrating intent decoder
+import torch, numpy as np
+class Engineer(Researcher):
+    def build(self, idea):
+        return ship(idea)
+$ status: online @ Red Hat
+$ stack: python · ml · systems</pre>
+    </div>
+
+    <div class="narr-layer narr-hud" aria-hidden="true">
+      <span class="b tl"></span><span class="b tr"></span>
+      <span class="b bl"></span><span class="b br"></span>
+      <span class="rd rd-tl mono">SUBJECT: C. FONSECA</span>
+      <span class="rd rd-tr mono">MODE: ENGINEER</span>
+      <span class="rd rd-bl mono">BJJ · BLACK BELT</span>
+      <span class="rd rd-br mono">BCI · ONLINE</span>
+      <span class="reticle"></span>
+    </div>
+
+    <div class="narr-ui">
+      <div class="narr-title">Hi, I’m Caio.</div>
+      <div class="narr-captions mono">
+        <p data-a="0" data-b="0.24">black belt · discipline</p>
+        <p data-a="0.26" data-b="0.52">brain–computer interfaces · neuroscience</p>
+        <p data-a="0.54" data-b="0.8">→ software engineer</p>
+        <p data-a="0.82" data-b="1.01">build the future</p>
+      </div>
+      <div class="narr-cue mono">scroll ↓</div>
+    </div>
+  </div>
+</section>
+
+<style>
+  #narrative-hero {
+    position: relative;
+    height: 260vh;
+    background: var(--bg);
+  }
+  .narr-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  .narr-layer {
+    position: absolute;
+    inset: 0;
+  }
+  .narr-photo {
+    background-size: cover;
+    background-position: 50% 16%;
+    background-color: #0d0d0c;
+    filter: grayscale(1) contrast(1.05) brightness(0.92);
+    transform: scale(1.05);
+    will-change: transform, opacity;
+  }
+  .narr-photo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    mix-blend-mode: color;
+    opacity: var(--duo, 0);
+  }
+  .narr-vignette {
+    pointer-events: none;
+    background: radial-gradient(ellipse 70% 65% at 50% 30%, transparent 35%, rgba(0, 0, 0, 0.6) 100%);
+  }
+  .narr-bci {
+    width: min(46vh, 70vw);
+    height: min(46vh, 70vw);
+    inset: auto;
+    left: 50%;
+    top: 8%;
+    transform: translateX(-50%);
+    opacity: 0;
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 60%, transparent));
+  }
+  .narr-code {
+    display: grid;
+    place-items: center;
+    opacity: 0;
+    background: color-mix(in srgb, #0d0d0c 78%, transparent);
+  }
+  .narr-code pre {
+    margin: 0;
+    font-size: clamp(11px, 1.6vw, 15px);
+    line-height: 1.7;
+    color: var(--accent);
+    text-align: left;
+    white-space: pre;
+  }
+  .narr-hud {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .narr-hud .b {
+    position: absolute;
+    width: 46px;
+    height: 46px;
+    border: 2px solid var(--accent);
+  }
+  .narr-hud .tl { top: 24px; left: 24px; border-right: 0; border-bottom: 0; }
+  .narr-hud .tr { top: 24px; right: 24px; border-left: 0; border-bottom: 0; }
+  .narr-hud .bl { bottom: 24px; left: 24px; border-right: 0; border-top: 0; }
+  .narr-hud .br { bottom: 24px; right: 24px; border-left: 0; border-top: 0; }
+  .narr-hud .rd {
+    position: absolute;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+  .narr-hud .rd-tl { top: 30px; left: 80px; }
+  .narr-hud .rd-tr { top: 30px; right: 80px; }
+  .narr-hud .rd-bl { bottom: 30px; left: 80px; }
+  .narr-hud .rd-br { bottom: 30px; right: 80px; }
+  .narr-hud .reticle {
+    position: absolute;
+    left: 50%;
+    top: 30%;
+    width: 120px;
+    height: 120px;
+    margin: -60px 0 0 -60px;
+    border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
+    border-radius: 50%;
+  }
+  .narr-hud .reticle::after {
+    content: '';
+    position: absolute;
+    inset: 18px;
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    border-radius: 50%;
+  }
+  .narr-ui {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 0 14vh;
+    text-align: center;
+    pointer-events: none;
+  }
+  .narr-title {
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: #f3f1ea;
+    text-shadow: 0 2px 30px rgba(0, 0, 0, 0.5);
+  }
+  .narr-captions {
+    position: relative;
+    height: 1.6em;
+    margin-top: 1rem;
+  }
+  .narr-captions p {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    font-size: clamp(12px, 1.7vw, 15px);
+    color: var(--accent);
+  }
+  .narr-cue {
+    position: absolute;
+    left: 50%;
+    bottom: 3vh;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: var(--faint);
+    animation: narr-bob 1.8s ease-in-out infinite;
+  }
+  @keyframes narr-bob {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, 5px); }
+  }
+
+  /* Skip the whole experience where it would cost or annoy. */
+  @media (max-width: 767px) {
+    #narrative-hero { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #narrative-hero { display: none; }
+    .narr-cue { animation: none; }
+  }
+</style>
+
+<script>
+  function clamp(n: number, a = 0, b = 1) {
+    return Math.max(a, Math.min(b, n));
+  }
+  function band(p: number, a: number, b: number) {
+    return clamp((p - a) / (b - a));
+  }
+  function fade(p: number, a: number, b: number, c: number, d: number) {
+    return band(p, a, b) * (1 - band(p, c, d));
+  }
+
+  function setupNarrative() {
+    const section = document.getElementById('narrative-hero');
+    if (!section) return;
+    if (getComputedStyle(section).display === 'none') return;
+
+    const sticky = section.querySelector('.narr-sticky') as HTMLElement;
+    const photo = section.querySelector('.narr-photo') as HTMLElement;
+    const bci = section.querySelector('.narr-bci') as HTMLElement;
+    const code = section.querySelector('.narr-code') as HTMLElement;
+    const hud = section.querySelector('.narr-hud') as HTMLElement;
+    const title = section.querySelector('.narr-title') as HTMLElement;
+    const cue = section.querySelector('.narr-cue') as HTMLElement;
+    const caps = Array.from(section.querySelectorAll<HTMLElement>('.narr-captions p'));
+    if (!sticky) return;
+
+    const apply = (p: number) => {
+      photo.style.transform = `scale(${(1.05 + p * 0.12).toFixed(3)})`;
+      photo.style.setProperty('--duo', band(p, 0.12, 0.5).toFixed(3));
+      photo.style.opacity = (1 - band(p, 0.62, 0.9)).toFixed(3);
+      bci.style.opacity = fade(p, 0.14, 0.34, 0.6, 0.82).toFixed(3);
+      code.style.opacity = fade(p, 0.5, 0.68, 1.1, 1.2).toFixed(3);
+      hud.style.opacity = band(p, 0.72, 0.96).toFixed(3);
+      title.style.opacity = (1 - band(p, 0.46, 0.7)).toFixed(3);
+      if (cue) cue.style.opacity = (1 - band(p, 0.04, 0.16)).toFixed(3);
+      for (const c of caps) {
+        const a = parseFloat(c.dataset.a || '0');
+        const b = parseFloat(c.dataset.b || '1');
+        const mid = (a + b) / 2;
+        c.style.opacity = fade(p, a, (a + mid) / 2, (mid + b) / 2, b).toFixed(3);
+      }
+    };
+
+    const progress = () => {
+      const rect = section.getBoundingClientRect();
+      const total = rect.height - window.innerHeight;
+      return total > 0 ? clamp(-rect.top / total) : 0;
+    };
+
+    // Debug hook: window.__narr.set(0.5) to freeze at a given progress.
+    let locked = false;
+    (window as unknown as { __narr: unknown }).__narr = {
+      set(p: number) {
+        locked = true;
+        apply(clamp(p));
+      },
+      unlock() {
+        locked = false;
+      },
+    };
+
+    let raf = 0;
+    let running = false;
+    const tick = () => {
+      if (!locked) apply(progress());
+      raf = requestAnimationFrame(tick);
+    };
+    const start = () => {
+      if (!running) {
+        running = true;
+        raf = requestAnimationFrame(tick);
+      }
+    };
+    const stop = () => {
+      running = false;
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+    };
+
+    apply(progress());
+    const io = new IntersectionObserver(
+      (e) => (e[0].isIntersecting ? start() : stop()),
+      { threshold: 0 },
+    );
+    io.observe(section);
+  }
+
+  document.addEventListener('astro:page-load', setupNarrative);
+</script>

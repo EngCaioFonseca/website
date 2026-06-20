@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import SectionHeading from '../components/SectionHeading.astro';
+import NarrativeHero from '../components/NarrativeHero.astro';
 import AgentShell from '../components/AgentShell.tsx';
 import BioNetCanvas from '../components/BioNetCanvas.tsx';
 import LiveStatusStrip from '../components/LiveStatusStrip.tsx';
@@ -45,6 +46,8 @@ const fmtDate = (d: Date) =>
 ---
 
 <Base>
+  <NarrativeHero />
+
   <section class="hero-cockpit">
     <BioNetCanvas client:idle />
     <div class="hero-grid" aria-hidden="true"></div>
